@@ -11,6 +11,8 @@ import java.util.List;
 import com.douzone.guestbook.vo.GuestbookVo;
 
 public class GuestbookDao {
+	
+	// 전체 방명록 검색
 	public List<GuestbookVo> findAll() {
 		List<GuestbookVo> list = new ArrayList<>();
 		
@@ -19,7 +21,7 @@ public class GuestbookDao {
 		ResultSet rs = null;
 				
 		try {
-			conn = getConnection();
+			conn = DBConn.getConn(); 
 			
 			String sql =
 				"   select no, name, date_format(reg_date, '%Y/%m/%d %H:%i:%s') as reg_date, message" +
@@ -45,39 +47,28 @@ public class GuestbookDao {
 			}
 			
 		} catch (SQLException e) {
-			System.out.println("error:" + e);
+			System.out.println("error[findAll]:" + e);
 		} finally {
-			try {
-				if(rs != null) {
-					rs.close();
-				}
-				if(pstmt != null) {
-					pstmt.close();
-				}
-				if(conn != null) {
-					conn.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			DBConn.close(conn, pstmt, rs);
 		}
 		
 		return list;
 	}
 	
+	// 방명록 삭제
 	public boolean delete(GuestbookVo vo) {
 		boolean result = false;
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
-			conn = getConnection();
+			conn = DBConn.getConn(); 
 			
 			String sql =
 					" delete" +
-					"   from guestbook" +
-					"  where no=?" +
-					"    and password=?";
+					" from   guestbook" +
+					" where  no=?" +
+					" and    password=?";
 			pstmt = conn.prepareStatement(sql);
 			
 			pstmt.setLong(1, vo.getNo());
@@ -89,32 +80,24 @@ public class GuestbookDao {
 		} catch (SQLException e) {
 			System.out.println("error:" + e);
 		} finally {
-			try {
-				if(pstmt != null) {
-					pstmt.close();
-				}
-				if(conn != null) {
-					conn.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			DBConn.close(conn, pstmt);
 		}		
 		
 		return result;		
 	}
 	
+	// 방명록 추가
 	public boolean insert(GuestbookVo vo) {
 		boolean result = false;
 
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
-			conn = getConnection();
+			conn = DBConn.getConn(); 
 			
 			String sql =
 					" insert" +
-					"   into guestbook" +
+					" into   guestbook" +
 					" values (null, ?, ?, ?, now())";
 			pstmt = conn.prepareStatement(sql);
 			
@@ -128,31 +111,10 @@ public class GuestbookDao {
 		} catch (SQLException e) {
 			System.out.println("error:" + e);
 		} finally {
-			try {
-				if(pstmt != null) {
-					pstmt.close();
-				}
-				if(conn != null) {
-					conn.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			DBConn.close(conn, pstmt);
 		}		
 		
 		return result;
 	}
 	
-	private Connection getConnection() throws SQLException {
-		Connection conn = null;
-		try {
-			Class.forName("org.mariadb.jdbc.Driver");
-			String url = "jdbc:mysql://127.0.0.1:3306/webdb?characterEncoding=utf8";
-			conn = DriverManager.getConnection(url, "webdb", "webdb");
-		} catch (ClassNotFoundException e) {
-			System.out.println("드라이버 로딩 실패:" + e);
-		} 
-		
-		return conn;
-	}	
 }
